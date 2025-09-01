@@ -5,7 +5,7 @@ import lombok.*;
     @AllArgsConstructor
     @NoArgsConstructor
     public class BookDTO {
-        private Integer id;
+        private Long id;
         private String name;
         private String writer;
         private Integer price;
