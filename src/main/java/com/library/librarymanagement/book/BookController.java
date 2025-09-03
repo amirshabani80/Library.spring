@@ -1,18 +1,14 @@
 package com.library.librarymanagement.book;
 
 
-import org.springframework.beans.factory.annotation.*;
+import jakarta.validation.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-//todo run project 2 test with postman
-
-
 @RestController
 @RequestMapping("/books")
 public class BookController {
-//todo learn validation rest api
 
     private final BookService bookService;
 
@@ -26,40 +22,31 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookDTO> getBookById(@PathVariable Integer id) {
+    public ResponseEntity<BookDTO> getBookById(@Valid @PathVariable Integer id) {
         BookDTO book = bookService.findById(id);
-        if (book != null) {
             return ResponseEntity.ok(book);
-        } else {
-            return ResponseEntity.notFound().build();
         }
-    }
 
     @PostMapping
-    public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO bookDTO) {
+    public ResponseEntity<BookDTO> addBook(@Valid @RequestBody BookDTO bookDTO) {
         BookDTO savedBook = bookService.addBook(bookDTO);
         return ResponseEntity.ok(savedBook);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookDTO> updateBook(@PathVariable Integer id, @RequestBody BookDTO bookDTO) {
+    public ResponseEntity<BookDTO> updateBook(@Valid @PathVariable Integer id,@Valid @RequestBody BookDTO bookDTO) {
         BookDTO updatedBook = bookService.updateBook(id, bookDTO);
-        if (updatedBook != null) {
             return ResponseEntity.ok(updatedBook);
-        } else {
-            //todo use advisor to handle exception
-            return ResponseEntity.notFound().build();
         }
+    @PatchMapping("/{id}")
+public ResponseEntity<BookDTO> updateStatus(@Valid @PathVariable Integer id,@Valid @RequestBody String status) {
+        BookDTO updateStatus = bookService.changeStatus(id, status);
+        return ResponseEntity.ok(updateStatus);
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteBook(@Valid @PathVariable Integer id) {
         boolean deleted = bookService.deleteBook(id);
-        if (deleted) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok().build();
     }
 
 

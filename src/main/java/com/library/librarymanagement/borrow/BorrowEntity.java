@@ -19,15 +19,15 @@ public class BorrowEntity {
     private Integer borrowId;
 
     @ManyToOne
-    @JoinColumn(name = "book_id",nullable = false)
-   private BookEntity book;
+    @JoinColumn(name = "book_id", nullable = false)
+    private BookEntity book;
 
     public Integer getBookID() {
         return book.getId();
     }
 
     @ManyToOne
-    @JoinColumn(name = "member_id",nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;
 
     public Integer getMemberId() {
@@ -36,4 +36,5 @@ public class BorrowEntity {
 
     private LocalDate borrowDate;
     private LocalDate returnDate;
+
 }

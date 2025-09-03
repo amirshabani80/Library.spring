@@ -1,5 +1,6 @@
 package com.library.librarymanagement.book;
 
+import com.library.librarymanagement.exception.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
@@ -20,6 +21,7 @@ public class BookService {
     public boolean existsById(Integer id) {
         return bookRepository.existsById(id);
     }
+
     public List<BookDTO> findAll() {
         List<BookDTO> books = new ArrayList<>();
         List<BookEntity> bookEntity = bookRepository.findAll();
@@ -32,13 +34,25 @@ public class BookService {
     public BookDTO findById(Integer id) {
         return bookRepository.findById(id)
                 .map(bookMapper::toDto)
-                .orElse(null);
-
+                .orElseThrow(() -> new NotFoundException("Book with id " + id + " not found"));
     }
 
     public BookDTO addBook(BookDTO bookDTO) {
-        BookEntity bookEntity = bookRepository.save(bookMapper.toEntity(bookDTO));
+        BookEntity bookEntity = bookMapper.toEntity(bookDTO);
+        bookEntity.setStatus(BookEntity.Status.AVAILABLE);
+        bookRepository.save(bookEntity);
         return bookMapper.toDto(bookEntity);
+    }
+
+    public BookDTO changeStatus(Integer id,String status) {
+        Optional<BookEntity> optional = bookRepository.findById(id);
+        if (optional.isPresent()) {
+           BookEntity bookEntity=optional.get();
+           bookEntity.setStatus(BookEntity.Status.valueOf(status.toUpperCase()));
+           bookRepository.save(bookEntity);
+           return bookMapper.toDto(bookEntity);
+        }else
+            throw new NotFoundException("Book with id " + id + " not found");
     }
 
     public BookDTO updateBook(Integer id, BookDTO bookDTO) {
@@ -52,7 +66,7 @@ public class BookService {
             bookRepository.save(newBook);
             return bookMapper.toDto(newBook);
         } else {
-            return null;
+            throw new NotFoundException("Book with id " + id + " not found");
         }
     }
 
@@ -62,21 +76,21 @@ public class BookService {
     }
 
     public BookDTO markAsBorrowed(Integer id) {
-        BookDTO bookDTO=getOptional(id);
+        BookDTO bookDTO = getOptional(id);
         bookDTO.setStatus(BookEntity.Status.BORROWED);
         bookRepository.save(bookMapper.toEntity(bookDTO));
         return bookDTO;
     }
 
     public BookDTO markAsAvailable(Integer id) {
-        BookDTO bookDTO=getOptional(id);
+        BookDTO bookDTO = getOptional(id);
         bookDTO.setStatus(BookEntity.Status.AVAILABLE);
         bookRepository.save(bookMapper.toEntity(bookDTO));
         return bookDTO;
     }
 
     public BookDTO markAsNeedrepaire(Integer id) {
-        BookDTO bookDTO=getOptional(id);
+        BookDTO bookDTO = getOptional(id);
         bookDTO.setStatus(BookEntity.Status.NEEDREPAIRE);
         bookRepository.save(bookMapper.toEntity(bookDTO));
         return bookDTO;

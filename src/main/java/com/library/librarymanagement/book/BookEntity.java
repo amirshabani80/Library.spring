@@ -1,9 +1,7 @@
 package com.library.librarymanagement.book;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "books")
@@ -13,6 +11,7 @@ import lombok.AllArgsConstructor;
 public class BookEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Integer id;
     private String name;
     private String writer;

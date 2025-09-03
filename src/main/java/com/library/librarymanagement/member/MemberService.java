@@ -1,7 +1,7 @@
 package com.library.librarymanagement.member;
 
 
-import org.springframework.beans.factory.annotation.*;
+import com.library.librarymanagement.exception.*;
 import org.springframework.stereotype.*;
 
 import java.util.*;
@@ -32,7 +32,8 @@ public class MemberService {
 
     public MemberDTO findById(Integer id) {
         return memberRepository.findById(id)
-                .map(memberMapper::toDto).orElse(null);
+                .map(memberMapper::toDto).orElseThrow(()->new NotFoundException("Member with id " + id + " not found"));
+
     }
 
     public MemberDTO addMember(MemberDTO memberDTO) {
@@ -51,16 +52,14 @@ public class MemberService {
             memberRepository.save(newMember);
             return memberMapper.toDto(newMember);
         } else
-            return null;
-    }
+            throw new NotFoundException("Member with id " + id + " not found");}
 
     public boolean deleteMember(Integer id) {
         if (memberRepository.existsById(id)) {
             memberRepository.deleteById(id);
             return true;
         } else
-            return false;
-    }
+            throw new NotFoundException("Member with id " + id + " not found");}
 }
 
 
