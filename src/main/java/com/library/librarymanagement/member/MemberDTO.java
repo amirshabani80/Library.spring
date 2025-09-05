@@ -9,7 +9,6 @@ import java.time.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberDTO {
-    @NotNull(message = "enter a number ID")
     private Integer id;
     @NotNull(message = "please enter a name")
     private String name;

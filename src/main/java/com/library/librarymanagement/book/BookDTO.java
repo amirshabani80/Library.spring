@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookDTO {
+    private Integer id;
     @NotEmpty(message = "please enter a name")
     @Size(min = 2)
     private String name;
@@ -14,7 +15,6 @@ public class BookDTO {
     private String writer;
     @NotNull(message = "please enter price")
     private Integer price;
-    @NotNull(message = "satats: AVAILABLE , BORROWED , NEEDREPAIRE")
     private BookEntity.Status status;
 }
 
