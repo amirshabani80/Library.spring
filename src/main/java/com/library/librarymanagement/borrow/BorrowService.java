@@ -6,6 +6,8 @@ import com.library.librarymanagement.exception.*;
 import com.library.librarymanagement.member.*;
 import org.springframework.stereotype.*;
 
+import java.time.*;
+import java.time.temporal.*;
 import java.util.*;
 
 @Service
@@ -17,15 +19,18 @@ public class BorrowService {
     private final MemberService memberService;
     private final MemberMapper memberMapper;
     private final BookMapper bookMapper;
+    private final BorrowHistoryRepository borrowHistoryRepository;
 
-    public BorrowService(BorrowRepository borrowRepository, BorrowMapper borrowMapper, BookService bookService,
-                         MemberService memberService, MemberMapper memberMapper, BookMapper bookMapper) {
+    public BorrowService(BorrowRepository borrowRepository, BorrowMapper borrowMapper,
+                         BookService bookService, MemberService memberService,
+                         MemberMapper memberMapper, BookMapper bookMapper, BorrowHistoryRepository borrowHistoryRepository) {
         this.borrowRepository = borrowRepository;
         this.borrowMapper = borrowMapper;
         this.bookService = bookService;
         this.memberService = memberService;
         this.memberMapper = memberMapper;
         this.bookMapper = bookMapper;
+        this.borrowHistoryRepository = borrowHistoryRepository;
     }
 
     public List<BorrowDTO> findAll() {
@@ -65,9 +70,40 @@ public class BorrowService {
         borrowEntity.setBorrowDate(borrowDTO.getBorrowDate());
         borrowEntity.setReturnDate(borrowDTO.getReturnDate());
         borrowRepository.save(borrowEntity);
+        BorrowHistoryEntity borrowHistory = new BorrowHistoryEntity();
+        borrowHistory.setBorrowId(borrowEntity.getBorrowId());
+        borrowHistory.setBookId(borrowEntity.getBookID());
+        borrowHistory.setMemberId(borrowEntity.getMemberId());
+        borrowHistory.setBorrowDate(borrowEntity.getBorrowDate());
+        borrowHistory.setReturnDate(borrowEntity.getReturnDate());
+        borrowHistory.setStatus("BORROWED");
+        borrowHistoryRepository.save(borrowHistory);
         bookService.markAsBorrowed(bookId);
         return borrowMapper.toDto(borrowEntity);
     }
+
+    public List<BorrowDTO> showDelayedBooks() {
+        List<BorrowDTO> delayedBook = new ArrayList<>();
+        List<BorrowEntity> borrowedBooks = borrowRepository.findAll();
+        for (BorrowEntity book : borrowedBooks) {
+            long daysLate = calculateDelayDays(book.getReturnDate());
+            if (daysLate > 0) {
+                delayedBook.add(borrowMapper.toDto(book));
+            }
+        }
+        return delayedBook;
+    }
+
+    private long calculateDelayDays(LocalDate returnDate) {
+        LocalDate today = LocalDate.now();
+
+        if (today.isAfter(returnDate)) {
+            return ChronoUnit.DAYS.between(returnDate, today);
+        } else {
+            return 0;
+        }
+    }
+
 
     public BorrowDTO updateBorrowRecord(Integer id, BorrowDTO borrowDTO) {
         Optional<BorrowEntity> optional = borrowRepository.findById(id);
@@ -80,9 +116,17 @@ public class BorrowService {
             entity.setMember(member);
             entity.setBook(book);
             borrowRepository.save(entity);
+            BorrowHistoryEntity borrowHistory = new BorrowHistoryEntity();
+            borrowHistory.setBorrowId(entity.getBorrowId());
+            borrowHistory.setBookId(entity.getBookID());
+            borrowHistory.setMemberId(entity.getMemberId());
+            borrowHistory.setBorrowDate(entity.getBorrowDate());
+            borrowHistory.setReturnDate(entity.getReturnDate());
+            borrowHistory.setStatus("BORROWED");
+            borrowHistoryRepository.save(borrowHistory);
             return borrowMapper.toDto(entity);
         } else
-        throw  new NotFoundException("Borrow record with id " + id + " not found");
+            throw new NotFoundException("Borrow record with id " + id + " not found");
     }
 
     public boolean returnBook(Integer borrowId) {
@@ -91,9 +135,27 @@ public class BorrowService {
             BorrowEntity borrowEntity = entity.get();
             bookService.markAsAvailable(borrowEntity.getBookID());
             borrowRepository.deleteById(borrowId);
+            BorrowHistoryEntity borrowHistory=borrowHistoryRepository.findByBorrowId(borrowId);
+            borrowHistory.setStatus("AVAILABLE");
+            borrowHistoryRepository.save(borrowHistory);
             return true;
         } else
-            throw  new NotFoundException("Borrow record with id " + borrowId + " not found");
+            throw new NotFoundException("Borrow record with id " + borrowId + " not found");
+    }
+
+
+    public List<BorrowDTO>findAllHistory() {
+        List<BorrowHistoryEntity> borrowEntities = borrowHistoryRepository.findAll();
+return borrowMapper.toDtoList(borrowEntities);
+    }
+
+    public List<BorrowDTO> bookHistory(Integer id) {
+         List<BorrowHistoryEntity> borrowEntities=borrowHistoryRepository.findByBookId(id);
+        return borrowMapper.toDtoList(borrowEntities);
+    }
+
+    public List<BorrowDTO> memberHistory(Integer id) {
+        return borrowMapper.toDtoList(borrowHistoryRepository.findByMemberId(id));
     }
 }
 

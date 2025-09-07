@@ -5,6 +5,8 @@ import com.library.librarymanagement.book.*;
 import com.library.librarymanagement.member.*;
 import org.mapstruct.*;
 
+import java.util.*;
+
 
 @Mapper(componentModel = "spring",uses ={})
 public interface BorrowMapper {
@@ -14,6 +16,10 @@ public interface BorrowMapper {
     @Mapping(source = "bookId", target = "book")
     @Mapping(source = "memberId", target = "member")
     BorrowEntity toEntity(BorrowDTO borrowDTO);
+    List<BorrowDTO> toDtoList(List<BorrowHistoryEntity> borrowEntities);
+    List<BorrowEntity> toEntityList(List<BorrowDTO> borrowDTOs);
+
+
 
     default Integer map(BookEntity book) {
         return (book != null) ? book.getId() : null;
